@@ -27,7 +27,7 @@ export const loadersPlugin = (options = {}) => {
             actions: () => {
               const newActions = {}
               Object.entries(actionsObject).forEach(([actionKey, listener]) => {
-                newActions[`${actionKey}`] = true
+                newActions[`${actionKey}`] = params => params
                 newActions[`${actionKey}Success`] = value => ({[reducerKey]: value})
                 newActions[`${actionKey}Failure`] = error => ({error})
               })
