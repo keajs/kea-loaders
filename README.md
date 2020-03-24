@@ -33,4 +33,4 @@ resetContext({
 
 ## Sample usage
 
-Coming soon!
+[Read the documentation](https://kea.js.org/plugins/loaders)
