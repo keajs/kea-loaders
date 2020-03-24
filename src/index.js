@@ -1,5 +1,5 @@
 export const loadersPlugin = (options = {}) => {
-  const onError = options.onError || function ({ error, actionKey, reducerKey }) {
+  const onError = options.onError || function ({ error, actionKey, reducerKey, logic }) {
     console.error(`Error in ${actionKey} for ${reducerKey}:`, error)
   }
 
@@ -20,7 +20,6 @@ export const loadersPlugin = (options = {}) => {
         // run the loaders function with the already created logic as an input,
         // so it can do ({ actions, ... }) => ({ ... })
         const loaders = input.loaders(logic)
-
 
         Object.entries(loaders).forEach(([reducerKey, actionsObject]) => {
           // extend the logic with these actions
@@ -56,12 +55,12 @@ export const loadersPlugin = (options = {}) => {
             listeners: ({actions}) => {
               const newListeners = {}
               Object.entries(actionsObject).forEach(([actionKey, listener]) => {
-                newListeners[actions[actionKey]] = async (args) => {
+                newListeners[actions[actionKey]] = async (payload, breakpoint, action) => {
                   try {
-                    const response = await listener()
+                    const response = await listener(payload, breakpoint, action)
                     actions[`${actionKey}Success`](response)
                   } catch (error) {
-                    onError && onError({error, actionKey, reducerKey})
+                    onError && onError({ error, actionKey, reducerKey, logic })
                     actions[`${actionKey}Failure`](error.message)
                   }
                 }
