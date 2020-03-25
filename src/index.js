@@ -22,11 +22,14 @@ export const loadersPlugin = (options = {}) => {
         const loaders = input.loaders(logic)
 
         Object.entries(loaders).forEach(([reducerKey, actionsObject]) => {
+          const { __default, ...realActions } = actionsObject
+          const defaultValue = typeof __default === 'function' ? __default() : (__default || null)
+
           // extend the logic with these actions
           logic.extend({
             actions: () => {
               const newActions = {}
-              Object.entries(actionsObject).forEach(([actionKey, listener]) => {
+              Object.entries(realActions).forEach(([actionKey, listener]) => {
                 newActions[`${actionKey}`] = params => params
                 newActions[`${actionKey}Success`] = value => ({[reducerKey]: value})
                 newActions[`${actionKey}Failure`] = error => ({error})
@@ -34,12 +37,12 @@ export const loadersPlugin = (options = {}) => {
               return newActions
             },
 
-            reducers: ({actions}) => {
+            reducers: ({ actions }) => {
               const reducerObject = {}
               const reducerLoadingObject = {}
 
-              Object.keys(actionsObject).forEach(actionKey => {
-                reducerObject[actions[`${actionKey}Success`]] = (_, {[reducerKey]: value}) => value
+              Object.keys(realActions).forEach(actionKey => {
+                reducerObject[actions[`${actionKey}Success`]] = (_, { [reducerKey]: value }) => value
 
                 reducerLoadingObject[actions[`${actionKey}`]] = () => true
                 reducerLoadingObject[actions[`${actionKey}Success`]] = () => false
@@ -47,14 +50,14 @@ export const loadersPlugin = (options = {}) => {
               })
 
               return {
-                [reducerKey]: [null, reducerObject],
+                [reducerKey]: [defaultValue, reducerObject],
                 [`${reducerKey}Loading`]: [false, reducerLoadingObject]
               }
             },
 
-            listeners: ({actions}) => {
+            listeners: ({ actions }) => {
               const newListeners = {}
-              Object.entries(actionsObject).forEach(([actionKey, listener]) => {
+              Object.entries(realActions).forEach(([actionKey, listener]) => {
                 newListeners[actions[actionKey]] = async (payload, breakpoint, action) => {
                   try {
                     const response = await listener(payload, breakpoint, action)
