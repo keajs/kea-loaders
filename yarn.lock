@@ -3721,10 +3721,10 @@ jsx-ast-utils@^2.1.0:
     array-includes "^3.0.3"
     object.assign "^4.1.0"
 
-kea@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/kea/-/kea-1.0.0.tgz#892bb4c2b0a243f1b0c05af8fefba0612b501f7d"
-  integrity sha512-FM9lCwvfsPPQHTeIk4XQfKKLBPKKcEz3cKprZwwLHzWUnf2UxdjgiRPfLB5XvrtrmyyZVFR8cIpataCZ+gO6Aw==
+kea@^2.0.0-beta.4:
+  version "2.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/kea/-/kea-2.0.0-beta.4.tgz#44c6fd71b8b83418a9f016c146a151a92c84085d"
+  integrity sha512-Y8CTS+PJ1qxbp/ksZs6ty8nvCiKkhAeK9WmV/AY1MsBuAJKGgsiqS1oQtF9t0SI1397Mbg1+FIpfFj6QLYpiYg==
 
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"

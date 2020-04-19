@@ -22,17 +22,38 @@ export const loadersPlugin = (options = {}) => {
         const loaders = input.loaders(logic)
 
         Object.entries(loaders).forEach(([reducerKey, actionsObject]) => {
+          let defaultValue = logic.defaults[reducerKey]
+
+          if (Array.isArray(actionsObject)) {
+            if (typeof defaultValue === 'undefined') {
+              defaultValue = actionsObject[0]
+            }
+            actionsObject = actionsObject[1] || {}
+          }
+
           const { __default, ...realActions } = actionsObject
-          const defaultValue = typeof __default === 'function' ? __default() : (__default || null)
+          if (typeof defaultValue === 'undefined' && typeof __default !== 'undefined') {
+            defaultValue = typeof __default === 'function' ? __default() : __default
+          }
+
+          if (typeof defaultValue === 'undefined') {
+            defaultValue = null
+          }
 
           // extend the logic with these actions
           logic.extend({
             actions: () => {
               const newActions = {}
               Object.entries(realActions).forEach(([actionKey, listener]) => {
-                newActions[`${actionKey}`] = params => params
-                newActions[`${actionKey}Success`] = value => ({[reducerKey]: value})
-                newActions[`${actionKey}Failure`] = error => ({error})
+                if (typeof logic.actions[`${actionKey}`] === 'undefined') {
+                  newActions[`${actionKey}`] = params => params
+                }
+                if (typeof logic.actions[`${actionKey}Success`] === 'undefined') {
+                  newActions[`${actionKey}Success`] = value => ({ [reducerKey]: value })
+                }
+                if (typeof logic.actions[`${actionKey}Failure`] === 'undefined') {
+                  newActions[`${actionKey}Failure`] = error => ({ error })
+                }
               })
               return newActions
             },
@@ -42,26 +63,43 @@ export const loadersPlugin = (options = {}) => {
               const reducerLoadingObject = {}
 
               Object.keys(realActions).forEach(actionKey => {
-                reducerObject[actions[`${actionKey}Success`]] = (_, { [reducerKey]: value }) => value
+                reducerObject[actions[`${actionKey}Success`]] = (_, { [reducerKey]: value }) => {
+                  console.log('success action reducer running', value)
+                  return value
+                }
 
                 reducerLoadingObject[actions[`${actionKey}`]] = () => true
                 reducerLoadingObject[actions[`${actionKey}Success`]] = () => false
                 reducerLoadingObject[actions[`${actionKey}Failure`]] = () => false
               })
 
-              return {
-                [reducerKey]: [defaultValue, reducerObject],
-                [`${reducerKey}Loading`]: [false, reducerLoadingObject]
+              const response = {}
+              if (typeof logic.reducers[reducerKey] === 'undefined') {
+                response[reducerKey] = [defaultValue, reducerObject]
               }
+              if (typeof logic.reducers[`${reducerKey}Loading`] === 'undefined') {
+                response[`${reducerKey}Loading`] = [false, reducerLoadingObject]
+              }
+              return response
             },
 
             listeners: ({ actions }) => {
               const newListeners = {}
               Object.entries(realActions).forEach(([actionKey, listener]) => {
-                newListeners[actions[actionKey]] = async (payload, breakpoint, action) => {
+                newListeners[actions[actionKey]] = (payload, breakpoint, action) => {
                   try {
-                    const response = await listener(payload, breakpoint, action)
-                    actions[`${actionKey}Success`](response)
+                    const response = listener(payload, breakpoint, action)
+
+                    if (response && response.then && typeof response.then === 'function') {
+                      return response.then(asyncResponse => {
+                        actions[`${actionKey}Success`](asyncResponse)
+                      }).catch(error => {
+                        onError && onError({ error, actionKey, reducerKey, logic })
+                        actions[`${actionKey}Failure`](error.message)
+                      })
+                    } else {
+                      actions[`${actionKey}Success`](response)
+                    }
                   } catch (error) {
                     onError && onError({ error, actionKey, reducerKey, logic })
                     actions[`${actionKey}Failure`](error.message)
@@ -76,7 +114,7 @@ export const loadersPlugin = (options = {}) => {
     },
 
     buildOrder: {
-      loaders: {before: 'actionCreators'},
+      loaders: {after: 'defaults'},
     },
   }
 }
