@@ -63,10 +63,7 @@ export const loadersPlugin = (options = {}) => {
               const reducerLoadingObject = {}
 
               Object.keys(realActions).forEach(actionKey => {
-                reducerObject[actions[`${actionKey}Success`]] = (_, { [reducerKey]: value }) => {
-                  console.log('success action reducer running', value)
-                  return value
-                }
+                reducerObject[actions[`${actionKey}Success`]] = (_, { [reducerKey]: value }) => value
 
                 reducerLoadingObject[actions[`${actionKey}`]] = () => true
                 reducerLoadingObject[actions[`${actionKey}Success`]] = () => false
