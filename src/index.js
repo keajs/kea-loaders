@@ -92,6 +92,7 @@ export const loadersPlugin = (options = {}) => {
 
                     if (response && response.then && typeof response.then === 'function') {
                       return response.then(asyncResponse => {
+                        onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
                         actions[`${actionKey}Success`](asyncResponse)
                       }).catch(error => {
                         onFailure && onFailure({ error, actionKey, reducerKey, logic })
