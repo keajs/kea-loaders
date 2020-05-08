@@ -161,7 +161,7 @@ test('can override actions and reducers', () => {
 test('throwing calls failure', async () => {
   const errorList = []
   resetContext({
-    plugins: [loadersPlugin({ onError: ({ error }) => errorList.push(error.message) })]
+    plugins: [loadersPlugin({ onFailure: ({ error }) => errorList.push(error.message) })]
   })
 
   let asyncListenerRan = null
@@ -203,6 +203,47 @@ test('throwing calls failure', async () => {
   expect(logic.values.users).toEqual(null)
   expect(asyncListenerRan).toBe('async nope')
   expect(errorList).toEqual(['sync nope', 'async nope'])
+
+  unmount()
+})
+
+test('onStart, onSucces and onFailure all work', async () => {
+  const startList = []
+  const successList = []
+  const failureList = []
+
+  resetContext({
+    plugins: [loadersPlugin({
+      onStart: () => startList.push(true),
+      onSuccess: ({ response }) => successList.push(response),
+      onFailure: ({ error }) => failureList.push(error.message)
+    })]
+  })
+
+  const logic = kea({
+    loaders: () => ({
+      users: {
+        loadUsersSucceeds: () => {
+          return 'yes'
+        },
+        loadUsersFails: () => {
+          throw new Error('sync nope')
+        }
+      }
+    })
+  })
+
+  const unmount = logic.mount()
+
+  logic.actions.loadUsersFails()
+  expect(startList).toEqual([true])
+  expect(failureList).toEqual(['sync nope'])
+  expect(successList).toEqual([])
+
+  logic.actions.loadUsersSucceeds()
+  expect(startList).toEqual([true, true])
+  expect(failureList).toEqual(['sync nope'])
+  expect(successList).toEqual(['yes'])
 
   unmount()
 })

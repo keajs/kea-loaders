@@ -1,5 +1,7 @@
 export const loadersPlugin = (options = {}) => {
-  const onError = options.onError || function ({ error, actionKey, reducerKey, logic }) {
+  const onStart = options.onStart || (() => {})
+  const onSuccess = options.onSuccess || (() => {})
+  const onFailure = options.onFailure || options.onError || function ({ error, actionKey, reducerKey, logic }) {
     console.error(`Error in ${actionKey} for ${reducerKey}:`, error)
   }
 
@@ -85,20 +87,22 @@ export const loadersPlugin = (options = {}) => {
               Object.entries(realActions).forEach(([actionKey, listener]) => {
                 newListeners[actions[actionKey]] = (payload, breakpoint, action) => {
                   try {
+                    onStart && onStart({ actionKey, reducerKey, logic })
                     const response = listener(payload, breakpoint, action)
 
                     if (response && response.then && typeof response.then === 'function') {
                       return response.then(asyncResponse => {
                         actions[`${actionKey}Success`](asyncResponse)
                       }).catch(error => {
-                        onError && onError({ error, actionKey, reducerKey, logic })
+                        onFailure && onFailure({ error, actionKey, reducerKey, logic })
                         actions[`${actionKey}Failure`](error.message)
                       })
                     } else {
+                      onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
                       actions[`${actionKey}Success`](response)
                     }
                   } catch (error) {
-                    onError && onError({ error, actionKey, reducerKey, logic })
+                    onFailure && onFailure({ error, actionKey, reducerKey, logic })
                     actions[`${actionKey}Failure`](error.message)
                   }
                 }
