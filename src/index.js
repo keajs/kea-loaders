@@ -1,3 +1,5 @@
+import { isBreakpoint } from 'kea'
+
 export const loadersPlugin = (options = {}) => {
   const onStart = options.onStart || (() => {})
   const onSuccess = options.onSuccess || (() => {})
@@ -95,16 +97,20 @@ export const loadersPlugin = (options = {}) => {
                         onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
                         actions[`${actionKey}Success`](asyncResponse)
                       }).catch(error => {
-                        onFailure && onFailure({ error, actionKey, reducerKey, logic })
-                        actions[`${actionKey}Failure`](error.message)
+                        if (!isBreakpoint(error)) {
+                          onFailure && onFailure({ error, actionKey, reducerKey, logic })
+                          actions[`${actionKey}Failure`](error.message)
+                        }
                       })
                     } else {
                       onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
                       actions[`${actionKey}Success`](response)
                     }
                   } catch (error) {
-                    onFailure && onFailure({ error, actionKey, reducerKey, logic })
-                    actions[`${actionKey}Failure`](error.message)
+                    if (!isBreakpoint(error)) {
+                      onFailure && onFailure({ error, actionKey, reducerKey, logic })
+                      actions[`${actionKey}Failure`](error.message)
+                    }
                   }
                 }
               })

@@ -247,3 +247,40 @@ test('onStart, onSucces and onFailure all work', async () => {
 
   unmount()
 })
+
+test('breakpoints work', async () => {
+  let errors = 0
+  let count = 0
+
+  resetContext({
+    plugins: [loadersPlugin({ onError: () => errors++ })]
+  })
+
+  const logic = kea({
+    actions: () => ({
+      loadUsers: true
+    }),
+
+    loaders: () => ({
+      users: {
+        loadUsers: async ({ value }, breakpoint) => {
+          await breakpoint(100)
+          count += 1
+          return value
+        }
+      }
+    })
+  })
+
+  const unmount = logic.mount()
+  expect(count).toBe(0)
+  logic.actions.loadUsers({ value: 'nonono' })
+  await delay(10)
+  logic.actions.loadUsers({ value: 'nonono' })
+  expect(count).toBe(0)
+  await delay(101)
+  expect(count).toBe(1)
+  expect(errors).toBe(0)
+
+  unmount()
+})
