@@ -14,18 +14,18 @@ const delay = ms => new Promise(resolve => window.setTimeout(resolve, ms))
 test('loaders work', async () => {
   let otherListenerRan = false
   const logic = kea({
-    loaders: () => ({
+    loaders: {
       users: {
         loadUsersAsync: async () => { await delay(2); return 'some async data' },
         loadUsersSync: () => 'some sync data'
       }
-    }),
+    },
 
-    listeners: () => ({
+    listeners: {
       loadUsersSync: () => {
         otherListenerRan = true
       }
-    })
+    }
   })
 
   const unmount = logic.mount()

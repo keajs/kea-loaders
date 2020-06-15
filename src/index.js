@@ -23,7 +23,7 @@ export const loadersPlugin = (options = {}) => {
 
         // run the loaders function with the already created logic as an input,
         // so it can do ({ actions, ... }) => ({ ... })
-        const loaders = input.loaders(logic)
+        const loaders = typeof input.loaders === 'function' ? input.loaders(logic) : input.loaders
 
         Object.entries(loaders).forEach(([reducerKey, actionsObject]) => {
           let defaultValue = logic.defaults[reducerKey]
