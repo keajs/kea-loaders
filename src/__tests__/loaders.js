@@ -5,27 +5,35 @@ import { loadersPlugin } from '../index'
 
 beforeEach(() => {
   resetContext({
-    plugins: [loadersPlugin]
+    plugins: [loadersPlugin],
   })
 })
 
-const delay = ms => new Promise(resolve => window.setTimeout(resolve, ms))
+const delay = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms))
 
 test('loaders work', async () => {
   let otherListenerRan = false
   const logic = kea({
     loaders: {
       users: {
-        loadUsersAsync: async () => { await delay(2); return 'some async data' },
-        loadUsersSync: () => 'some sync data'
-      }
+        loadUsersAsync: async () => {
+          await delay(2)
+          return 'some async data'
+        },
+        loadUsersSync: ({ id }) => 'some sync data',
+      },
     },
 
     listeners: {
       loadUsersSync: () => {
         otherListenerRan = true
-      }
-    }
+      },
+      loadUsersSyncSuccess: ({ users, payload }) => {
+        expect(users).toEqual('some sync data')
+        expect(payload).toEqual({ id: 42 })
+        otherListenerRan = true
+      },
+    },
   })
 
   const unmount = logic.mount()
@@ -38,10 +46,10 @@ test('loaders work', async () => {
     'loadUsersAsyncSuccess',
     'loadUsersSync',
     'loadUsersSyncFailure',
-    'loadUsersSyncSuccess'
+    'loadUsersSyncSuccess',
   ])
 
-  logic.actions.loadUsersSync()
+  logic.actions.loadUsersSync({ id: 42 })
   expect(logic.values.users).toEqual('some sync data')
   expect(otherListenerRan).toBe(true)
 
@@ -58,9 +66,9 @@ test('defaults via __default', () => {
     loaders: () => ({
       users: {
         __default: 'default',
-        loadUsers: () => 'some sync data'
-      }
-    })
+        loadUsers: () => 'some sync data',
+      },
+    }),
   })
 
   const unmount = logic.mount()
@@ -73,10 +81,13 @@ test('defaults via __default', () => {
 test('defaults via reducer style [default, {...}]', () => {
   const logic = kea({
     loaders: () => ({
-      users: ['default', {
-        loadUsers: () => 'some sync data'
-      }]
-    })
+      users: [
+        'default',
+        {
+          loadUsers: () => 'some sync data',
+        },
+      ],
+    }),
   })
 
   const unmount = logic.mount()
@@ -89,14 +100,14 @@ test('defaults via reducer style [default, {...}]', () => {
 test('defaults via defaults', () => {
   const logic = kea({
     defaults: {
-      users: 'default'
+      users: 'default',
     },
 
     loaders: () => ({
       users: {
-        loadUsers: () => 'some sync data'
-      }
-    })
+        loadUsers: () => 'some sync data',
+      },
+    }),
   })
 
   const unmount = logic.mount()
@@ -109,23 +120,29 @@ test('defaults via defaults', () => {
 test('defaults order', () => {
   const logic1 = kea({
     defaults: {
-      users: 'default'
+      users: 'default',
     },
 
     loaders: () => ({
-      users: ['array', {
-        __default: 'key',
-        loadUsers: () => 'some sync data'
-      }]
-    })
+      users: [
+        'array',
+        {
+          __default: 'key',
+          loadUsers: () => 'some sync data',
+        },
+      ],
+    }),
   })
   const logic2 = kea({
     loaders: () => ({
-      users: ['array', {
-        __default: 'key',
-        loadUsers: () => 'some sync data'
-      }]
-    })
+      users: [
+        'array',
+        {
+          __default: 'key',
+          loadUsers: () => 'some sync data',
+        },
+      ],
+    }),
   })
 
   const unmount1 = logic1.mount()
@@ -141,14 +158,14 @@ test('defaults order', () => {
 test('can override actions and reducers', () => {
   const logic = kea({
     actions: () => ({
-      loadUsers: 'yesyesyes'
+      loadUsers: 'yesyesyes',
     }),
 
     loaders: () => ({
       users: {
-        loadUsers: ({ value }) => value
-      }
-    })
+        loadUsers: ({ value }) => value,
+      },
+    }),
   })
 
   const unmount = logic.mount()
@@ -161,7 +178,7 @@ test('can override actions and reducers', () => {
 test('throwing calls failure', async () => {
   const errorList = []
   resetContext({
-    plugins: [loadersPlugin({ onFailure: ({ error }) => errorList.push(error.message) })]
+    plugins: [loadersPlugin({ onFailure: ({ error }) => errorList.push(error.message) })],
   })
 
   let asyncListenerRan = null
@@ -175,18 +192,22 @@ test('throwing calls failure', async () => {
         },
         loadUsersSync: () => {
           throw new Error('sync nope')
-        }
-      }
+        },
+      },
     }),
 
     listeners: () => ({
-      loadUsersAsyncFailure: ({ error }) => {
+      loadUsersAsyncFailure: ({ error, errorObject }) => {
+        expect(errorObject).toBeInstanceOf(Error)
+        expect(errorObject.message).toBe(error)
         asyncListenerRan = error
       },
-      loadUsersSyncFailure: ({ error }) => {
+      loadUsersSyncFailure: ({ error, errorObject }) => {
+        expect(errorObject).toBeInstanceOf(Error)
+        expect(errorObject.message).toBe(error)
         syncListenerRan = error
-      }
-    })
+      },
+    }),
   })
 
   const unmount = logic.mount()
@@ -213,11 +234,13 @@ test('onStart, onSucces and onFailure all work', async () => {
   const failureList = []
 
   resetContext({
-    plugins: [loadersPlugin({
-      onStart: () => startList.push(true),
-      onSuccess: ({ response }) => successList.push(response),
-      onFailure: ({ error }) => failureList.push(error.message)
-    })]
+    plugins: [
+      loadersPlugin({
+        onStart: () => startList.push(true),
+        onSuccess: ({ response }) => successList.push(response),
+        onFailure: ({ error }) => failureList.push(error.message),
+      }),
+    ],
   })
 
   const logic = kea({
@@ -228,9 +251,9 @@ test('onStart, onSucces and onFailure all work', async () => {
         },
         loadUsersFails: () => {
           throw new Error('sync nope')
-        }
-      }
-    })
+        },
+      },
+    }),
   })
 
   const unmount = logic.mount()
@@ -253,12 +276,12 @@ test('breakpoints work', async () => {
   let count = 0
 
   resetContext({
-    plugins: [loadersPlugin({ onError: () => errors++ })]
+    plugins: [loadersPlugin({ onError: () => errors++ })],
   })
 
   const logic = kea({
     actions: () => ({
-      loadUsers: true
+      loadUsers: true,
     }),
 
     loaders: () => ({
@@ -267,9 +290,9 @@ test('breakpoints work', async () => {
           await breakpoint(100)
           count += 1
           return value
-        }
-      }
-    })
+        },
+      },
+    }),
   })
 
   const unmount = logic.mount()

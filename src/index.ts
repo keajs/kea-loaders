@@ -89,10 +89,10 @@ export const loadersPlugin = (options: Partial<KeaLoadersOptions> = {}): KeaPlug
                   newActions[`${actionKey}`] = (params) => params
                 }
                 if (typeof logic.actions[`${actionKey}Success`] === 'undefined') {
-                  newActions[`${actionKey}Success`] = (value) => ({ [reducerKey]: value })
+                  newActions[`${actionKey}Success`] = (value, payload) => ({ payload, [reducerKey]: value })
                 }
                 if (typeof logic.actions[`${actionKey}Failure`] === 'undefined') {
-                  newActions[`${actionKey}Failure`] = (error) => ({ error })
+                  newActions[`${actionKey}Failure`] = (error, errorObject) => ({ error, errorObject })
                 }
               })
               return newActions
@@ -137,17 +137,17 @@ export const loadersPlugin = (options: Partial<KeaLoadersOptions> = {}): KeaPlug
                         .catch((error: Error) => {
                           if (!isBreakpoint(error)) {
                             onFailure && onFailure({ error, actionKey, reducerKey, logic })
-                            actions[`${actionKey}Failure`](error.message)
+                            actions[`${actionKey}Failure`](error.message, error)
                           }
                         })
                     } else {
                       onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
-                      actions[`${actionKey}Success`](response)
+                      actions[`${actionKey}Success`](response, payload)
                     }
                   } catch (error) {
                     if (!isBreakpoint(error)) {
                       onFailure && onFailure({ error, actionKey, reducerKey, logic })
-                      actions[`${actionKey}Failure`](error.message)
+                      actions[`${actionKey}Failure`](error.message, error)
                     }
                   }
                 }

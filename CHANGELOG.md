@@ -5,6 +5,9 @@ As we're at the 0.x phase, deprecations and breaking changes will still happen. 
 
 Once we react 1.0 all deprecations will be removed and the project will switch to SemVer.
 
+## 0.5.0 - 2021-10-14
+- Add `payload` param to the `*Success` action and `errorObject` param to the `*Failure` action.
+
 ## 0.4.0 - 2021-04-25
 - Convert to TypeScript
 
