@@ -132,7 +132,7 @@ export const loadersPlugin = (options: Partial<KeaLoadersOptions> = {}): KeaPlug
                       return response
                         .then((asyncResponse: any) => {
                           onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
-                          actions[`${actionKey}Success`](asyncResponse)
+                          actions[`${actionKey}Success`](asyncResponse, payload)
                         })
                         .catch((error: Error) => {
                           if (!isBreakpoint(error)) {
