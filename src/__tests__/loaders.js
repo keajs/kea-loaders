@@ -20,7 +20,9 @@ test('loaders work', async () => {
           await delay(2)
           return 'some async data'
         },
-        loadUsersSync: ({ id }) => 'some sync data',
+        loadUsersSync: ({ id }) => {
+          return 'some sync data'
+        },
       },
     },
 
@@ -184,18 +186,6 @@ test('throwing calls failure', async () => {
   let asyncListenerRan = null
   let syncListenerRan = null
   const logic = kea({
-    loaders: () => ({
-      users: {
-        loadUsersAsync: async () => {
-          await delay(2)
-          throw new Error('async nope')
-        },
-        loadUsersSync: () => {
-          throw new Error('sync nope')
-        },
-      },
-    }),
-
     listeners: () => ({
       loadUsersAsyncFailure: ({ error, errorObject }) => {
         expect(errorObject).toBeInstanceOf(Error)
@@ -208,6 +198,18 @@ test('throwing calls failure', async () => {
         syncListenerRan = error
       },
     }),
+    loaders: () => ({
+      users: {
+        loadUsersAsync: async () => {
+          await delay(2)
+          throw new Error('async nope')
+        },
+        loadUsersSync: () => {
+          throw new Error('sync nope')
+        },
+      },
+    }),
+
   })
 
   const unmount = logic.mount()
@@ -228,7 +230,7 @@ test('throwing calls failure', async () => {
   unmount()
 })
 
-test('onStart, onSucces and onFailure all work', async () => {
+test('onStart, onSuccess and onFailure all work', async () => {
   const startList = []
   const successList = []
   const failureList = []

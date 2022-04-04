@@ -4573,10 +4573,8 @@ jsprim@^1.2.2:
     array-includes "^3.1.2"
     object.assign "^4.1.2"
 
-kea@^2.3.7:
-  version "2.3.7"
-  resolved "https://registry.yarnpkg.com/kea/-/kea-2.3.7.tgz#b194ae10983d6ff85283625fbbfcedcb863b04d9"
-  integrity sha512-e4gP4e5fKZagILLez75A3D6aCpugankqkfA4fC9znaVyk/UcOOdB+wE+bWyNFK96jb8XW3gWZipu2/scttR8xQ==
+"kea@file:.yalc/kea":
+  version "3.0.0-alpha.0"
 
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"
