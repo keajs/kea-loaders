@@ -89,9 +89,10 @@ export function loaders<L extends Logic = Logic>(
   return (logic) => {
     const loaders = typeof input === 'function' ? input(logic) : input
 
-    Object.entries(loaders).forEach(([reducerKey, actionsObject]) => {
+    for (const [reducerKey, actionsInput] of Object.entries(loaders)) {
       let defaultValue = logic.defaults[reducerKey]
 
+      let actionsObject = actionsInput
       if (Array.isArray(actionsObject)) {
         if (typeof defaultValue === 'undefined') {
           defaultValue = actionsObject[0]
@@ -107,7 +108,6 @@ export function loaders<L extends Logic = Logic>(
         defaultValue = null
       }
 
-      // add the actions
       const newActions: Record<string, any> = {}
       Object.keys(loaderActions).forEach((actionKey) => {
         if (typeof logic.actions[`${actionKey}`] === 'undefined') {
@@ -120,9 +120,8 @@ export function loaders<L extends Logic = Logic>(
           newActions[`${actionKey}Failure`] = (error: any, errorObject: any) => ({ error, errorObject })
         }
       })
-      actions<L>(newActions)(logic)
 
-      // add the reducers
+      const newReducers: Record<string, [any, any]> = {}
       const reducerObject: Record<string, (state: any, payload: any) => any> = {}
       const reducerLoadingObject: Record<string, () => any> = {}
       Object.keys(loaderActions).forEach((actionKey) => {
@@ -131,16 +130,13 @@ export function loaders<L extends Logic = Logic>(
         reducerLoadingObject[`${actionKey}Success`] = () => false
         reducerLoadingObject[`${actionKey}Failure`] = () => false
       })
-      const newReducers: Record<string, [any, any]> = {}
       if (typeof logic.reducers[reducerKey] === 'undefined') {
         newReducers[reducerKey] = [defaultValue, reducerObject]
       }
       if (typeof logic.reducers[`${reducerKey}Loading`] === 'undefined') {
         newReducers[`${reducerKey}Loading`] = [false, reducerLoadingObject]
       }
-      reducers<L>(newReducers)(logic)
 
-      // add the listener
       const newListeners: Record<string, ListenerFunction> = {}
       Object.entries(loaderActions).forEach(([actionKey, listener]) => {
         newListeners[actionKey] = (payload, breakpoint, action) => {
@@ -173,7 +169,10 @@ export function loaders<L extends Logic = Logic>(
           }
         }
       })
+
+      actions<L>(newActions)(logic)
+      reducers<L>(newReducers)(logic)
       listeners(newListeners)(logic)
-    })
+    }
   }
 }
