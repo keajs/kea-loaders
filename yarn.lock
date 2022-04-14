@@ -4593,10 +4593,10 @@ jsprim@^1.2.2:
     array-includes "^3.1.2"
     object.assign "^4.1.2"
 
-kea@^3.0.0-alpha.1:
-  version "3.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/kea/-/kea-3.0.0-alpha.1.tgz#4458b9df0a9a02abd109d339f9d191fb7da548c1"
-  integrity sha512-AvP8xk/lIXTfhd4K/fknIS9Z9bZbW+CCTNSgt4jlm9wUnyy6JWxzxKg1Aw5WbwpkbnFDMBU62B+gjsoi+w4TIg==
+kea@^3.0.0-alpha.4:
+  version "3.0.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/kea/-/kea-3.0.0-alpha.4.tgz#04115487698a054f4369869d8bf90c31019ff604"
+  integrity sha512-PMPlF/UXz8pnWFo8IYtNB33QunvMHm5OoMK6ygOUaHbACms+vvHtEATMCIK54bx0eAZLMoYcJ2AAWbufTGqziA==
 
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"

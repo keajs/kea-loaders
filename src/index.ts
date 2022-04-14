@@ -76,7 +76,7 @@ export const loadersPlugin = (options: Partial<KeaLoadersOptions> = {}): KeaPlug
             console.error(`Error in ${actionKey} for ${reducerKey}:`, error)
           }
       },
-      legacyBuild: (logic, input) => {
+      legacyBuildAfterDefaults: (logic, input) => {
         'loaders' in input && input.loaders && loaders(input.loaders)(logic)
       },
     },
