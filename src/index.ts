@@ -60,11 +60,6 @@ export type KeaLoadersOptions = {
 export const loadersPlugin = (options: Partial<KeaLoadersOptions> = {}): KeaPlugin => {
   return {
     name: 'loaders',
-
-    defaults: () => ({
-      loaders: undefined,
-    }),
-
     events: {
       afterPlugin: () => {
         const pluginContext = getPluginContext<KeaLoadersOptions>('loaders')
