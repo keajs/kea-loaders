@@ -86,7 +86,7 @@
     "jest": "^26.0.1",
     "jest-environment-node-debug": "^2.0.0",
     "jsdom": "^16.2.2",
-    "kea": "^3.0.0-alpha.4",
+    "kea": "^3.0.0-beta.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-redux": "^7.2.0",

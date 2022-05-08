@@ -79,7 +79,7 @@ export const loadersPlugin = (options: Partial<KeaLoadersOptions> = {}): KeaPlug
 }
 
 export function loaders<L extends Logic = Logic>(
-  input: LoaderDefinitions<Logic> | ((logic: Logic) => LoaderDefinitions<Logic>),
+  input: LoaderDefinitions<L> | ((logic: L) => LoaderDefinitions<L>),
 ): LogicBuilder<L> {
   return (logic) => {
     const loaders = typeof input === 'function' ? input(logic) : input
@@ -138,6 +138,7 @@ export function loaders<L extends Logic = Logic>(
           const { onStart, onSuccess, onFailure } = getPluginContext<KeaLoadersOptions>('loaders')
           try {
             onStart && onStart({ actionKey, reducerKey, logic })
+            // @ts-ignore
             const response = listener(payload, breakpoint, action)
 
             if (response && response.then && typeof response.then === 'function') {
@@ -165,6 +166,7 @@ export function loaders<L extends Logic = Logic>(
         }
       })
 
+      // @ts-ignore
       actions<L>(newActions)(logic)
       reducers<L>(newReducers)(logic)
       listeners(newListeners)(logic)
