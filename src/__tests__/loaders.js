@@ -160,7 +160,7 @@ test('defaults order', () => {
 test('can override actions and reducers', () => {
   const logic = kea({
     actions: () => ({
-      loadUsers: 'yesyesyes',
+      loadUsers: true,
     }),
 
     loaders: () => ({
@@ -172,7 +172,7 @@ test('can override actions and reducers', () => {
 
   const unmount = logic.mount()
   logic.actions.loadUsers({ value: 'nonono' })
-  expect(logic.values.users).toBe('yesyesyes')
+  expect(logic.values.users).toBe(true)
 
   unmount()
 })
@@ -209,7 +209,6 @@ test('throwing calls failure', async () => {
         },
       },
     }),
-
   })
 
   const unmount = logic.mount()
