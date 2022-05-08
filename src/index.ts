@@ -116,7 +116,7 @@ export function loaders<L extends Logic = Logic>(
         }
       })
 
-      const newReducers: Record<string, [any, any]> = {}
+      const newReducers: Record<string, [any, any] | any> = {}
       const reducerObject: Record<string, (state: any, payload: any) => any> = {}
       const reducerLoadingObject: Record<string, () => any> = {}
       Object.keys(loaderActions).forEach((actionKey) => {
@@ -127,6 +127,8 @@ export function loaders<L extends Logic = Logic>(
       })
       if (typeof logic.reducers[reducerKey] === 'undefined') {
         newReducers[reducerKey] = [defaultValue, reducerObject]
+      } else {
+        newReducers[reducerKey] = reducerObject
       }
       if (typeof logic.reducers[`${reducerKey}Loading`] === 'undefined') {
         newReducers[`${reducerKey}Loading`] = [false, reducerLoadingObject]
