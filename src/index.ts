@@ -146,8 +146,15 @@ export function loaders<L extends Logic = Logic>(
             if (response && response.then && typeof response.then === 'function') {
               return response
                 .then((asyncResponse: any) => {
-                  onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
-                  logic.actions[`${actionKey}Success`](asyncResponse, payload)
+                  try {
+                    onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
+                    logic.actions[`${actionKey}Success`](asyncResponse, payload)
+                  } catch (error: Error){
+                    if (!isBreakpoint(error)) {
+                      onFailure && onFailure({ error, actionKey, reducerKey, logic })
+                      logic.actions[`${actionKey}Failure`](error.message, error)
+                    }
+                  }
                 })
                 .catch((error: Error) => {
                   if (!isBreakpoint(error)) {
