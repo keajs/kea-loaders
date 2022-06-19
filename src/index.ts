@@ -146,7 +146,7 @@ export function loaders<L extends Logic = Logic>(
             if (response && response.then && typeof response.then === 'function') {
               return response
                 .then((asyncResponse: any) => {
-                  onSuccess && onSuccess({ response, actionKey, reducerKey, logic })
+                  onSuccess && onSuccess({ response: asyncResponse, actionKey, reducerKey, logic })
                   logic.actions[`${actionKey}Success`](asyncResponse, payload)
                 })
                 .catch((error: Error) => {
