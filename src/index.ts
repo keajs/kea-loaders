@@ -54,6 +54,7 @@ export type KeaLoadersOptions = {
     reducerKey: string
     logic: BuiltLogic
     error: Error
+    response?: any
   }) => void
 }
 
@@ -151,7 +152,7 @@ export function loaders<L extends Logic = Logic>(
                 })
                 .catch((error: Error) => {
                   if (!isBreakpoint(error)) {
-                    onFailure && onFailure({ error, actionKey, reducerKey, logic })
+                    onFailure && onFailure({ error, actionKey, reducerKey, logic, response })
                     logic.actions[`${actionKey}Failure`](error.message, error)
                   }
                 })
