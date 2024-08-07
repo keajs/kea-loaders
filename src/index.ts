@@ -120,11 +120,15 @@ export function loaders<L extends Logic = Logic>(
       const newReducers: Record<string, [any, any] | any> = {}
       const reducerObject: Record<string, (state: any, payload: any) => any> = {}
       const reducerLoadingObject: Record<string, () => any> = {}
+      const reducerErrorObject: Record<string, (state: any, payload: any) => any> = {}
       Object.keys(loaderActions).forEach((actionKey) => {
         reducerObject[`${actionKey}Success`] = (_, { [reducerKey]: value }) => value
         reducerLoadingObject[`${actionKey}`] = () => true
         reducerLoadingObject[`${actionKey}Success`] = () => false
         reducerLoadingObject[`${actionKey}Failure`] = () => false
+        reducerErrorObject[`${actionKey}`] = () => null
+        reducerErrorObject[`${actionKey}Success`] = () => null
+        reducerErrorObject[`${actionKey}Failure`] = (_, { errorObject }) => errorObject
       })
       if (typeof logic.reducers[reducerKey] === 'undefined') {
         newReducers[reducerKey] = [defaultValue, reducerObject]
@@ -133,6 +137,9 @@ export function loaders<L extends Logic = Logic>(
       }
       if (typeof logic.reducers[`${reducerKey}Loading`] === 'undefined') {
         newReducers[`${reducerKey}Loading`] = [false, reducerLoadingObject]
+      }
+      if (typeof logic.reducers[`${reducerKey}Error`] === 'undefined') {
+        newReducers[`${reducerKey}Error`] = [false, reducerErrorObject]
       }
 
       const newListeners: Record<string, ListenerFunction> = {}
