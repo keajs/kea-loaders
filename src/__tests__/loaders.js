@@ -41,7 +41,7 @@ test('loaders work', async () => {
   const unmount = logic.mount()
 
   expect(logic.values.users).toBe(null)
-  expect(Object.keys(logic.values)).toEqual(['users', 'usersLoading'])
+  expect(Object.keys(logic.values)).toEqual(['users', 'usersLoading', 'usersError'])
   expect(Object.keys(logic.actions).sort()).toEqual([
     'loadUsersAsync',
     'loadUsersAsyncFailure',
@@ -215,6 +215,7 @@ test('throwing calls failure', async () => {
 
   logic.actions.loadUsersSync()
   expect(logic.values.users).toEqual(null)
+  expect(logic.values.usersError).toEqual(Error('sync nope'))
   expect(syncListenerRan).toBe('sync nope')
 
   expect(errorList).toEqual(['sync nope'])
@@ -223,6 +224,7 @@ test('throwing calls failure', async () => {
   await delay(10)
 
   expect(logic.values.users).toEqual(null)
+  expect(logic.values.usersError).toEqual(Error('async nope'))
   expect(asyncListenerRan).toBe('async nope')
   expect(errorList).toEqual(['sync nope', 'async nope'])
 
