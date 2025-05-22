@@ -155,7 +155,7 @@ export function loaders<L extends Logic = Logic>(
           (value: any) => {
             if (!logic.cache[`lazyLoaderCalled-${firstActionKey}`]) {
               try {
-                firstActionKey && logic.actions[firstActionKey]?.()
+                setTimeout(() => firstActionKey && logic.actions[firstActionKey]?.(), 0)
               } catch (e) {
                 console.error('[KEA-LAZY-LOADERS]', reducerKey, e)
               }
