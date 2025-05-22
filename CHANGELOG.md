@@ -5,7 +5,10 @@ As we're at the 0.x phase, deprecations and breaking changes will still happen. 
 
 Once we react 1.0 all deprecations will be removed and the project will switch to SemVer.
 
-## 0.5.1 - 2012-10-14
+## 0.6.0 - 2025-05-22
+- Add lazy loaders
+
+## 0.5.1 - 2021-10-14
 - Fix bug with async loaders not passing the success payload
 
 ## 0.5.0 - 2021-10-14

@@ -9,7 +9,7 @@ import {
   listeners,
   Logic,
   LogicBuilder,
-  reducers,
+  reducers, selectors,
 } from 'kea'
 
 export type LoaderFunctions<LogicType extends Logic, ReducerReturnType> = {
@@ -58,6 +58,10 @@ export type KeaLoadersOptions = {
   }) => void
 }
 
+export interface LoaderOpts {
+  lazy?: boolean
+}
+
 export const loadersPlugin = (options: Partial<KeaLoadersOptions> = {}): KeaPlugin => {
   return {
     name: 'loaders',
@@ -81,7 +85,9 @@ export const loadersPlugin = (options: Partial<KeaLoadersOptions> = {}): KeaPlug
 
 export function loaders<L extends Logic = Logic>(
   input: LoaderDefinitions<L> | ((logic: L) => LoaderDefinitions<L>),
+  opts?: LoaderOpts
 ): LogicBuilder<L> {
+  const lazy = opts?.lazy ?? false
   return (logic) => {
     const loaders = typeof input === 'function' ? input(logic) : input
 
@@ -120,19 +126,44 @@ export function loaders<L extends Logic = Logic>(
       const newReducers: Record<string, [any, any] | any> = {}
       const reducerObject: Record<string, (state: any, payload: any) => any> = {}
       const reducerLoadingObject: Record<string, () => any> = {}
+      let firstActionKey: string | undefined = undefined
       Object.keys(loaderActions).forEach((actionKey) => {
+        if (!firstActionKey) {
+          firstActionKey = actionKey
+        }
         reducerObject[`${actionKey}Success`] = (_, { [reducerKey]: value }) => value
         reducerLoadingObject[`${actionKey}`] = () => true
         reducerLoadingObject[`${actionKey}Success`] = () => false
         reducerLoadingObject[`${actionKey}Failure`] = () => false
       })
+
+      const baseReducerName = lazy ? `${reducerKey}Source` : reducerKey
       if (typeof logic.reducers[reducerKey] === 'undefined') {
-        newReducers[reducerKey] = [defaultValue, reducerObject]
+        newReducers[baseReducerName] = [defaultValue, reducerObject]
       } else {
-        newReducers[reducerKey] = reducerObject
+        newReducers[baseReducerName] = reducerObject
       }
+
       if (typeof logic.reducers[`${reducerKey}Loading`] === 'undefined') {
         newReducers[`${reducerKey}Loading`] = [false, reducerLoadingObject]
+      }
+
+      const newSelectors: Record<string, [any, any] | any> = {}
+      if (lazy && firstActionKey) {
+        newSelectors[reducerKey] = [
+          (s: any)=> [s[baseReducerName]],
+          (value: any) => {
+            if (!logic.cache[`lazyLoaderCalled-${firstActionKey}`]) {
+              try {
+                logic.actions[firstActionKey]?.()
+              } catch (e) {
+                console.error('[KEA-LAZY-LOADERS]', reducerKey, e)
+              }
+              logic.cache[`lazyLoaderCalled-${firstActionKey}`] = true
+            }
+            return value
+          }
+        ]
       }
 
       const newListeners: Record<string, ListenerFunction> = {}
@@ -172,7 +203,16 @@ export function loaders<L extends Logic = Logic>(
       // @ts-ignore
       actions<L>(newActions)(logic)
       reducers<L>(newReducers)(logic)
+      if (lazy) {
+          selectors<L>(newSelectors)(logic)
+      }
       listeners(newListeners)(logic)
     }
   }
+}
+
+export function lazyLoaders<L extends Logic = Logic>(
+  input: LoaderDefinitions<L> | ((logic: L) => LoaderDefinitions<L>)
+): LogicBuilder<L> {
+  return loaders(input, { lazy: true })
 }

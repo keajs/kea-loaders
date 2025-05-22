@@ -1,7 +1,7 @@
 /* global test, expect, beforeEach */
 import { resetContext, kea } from 'kea'
 
-import { loadersPlugin } from '../index'
+import { loadersPlugin, lazyLoaders } from '../index'
 
 beforeEach(() => {
   resetContext({
@@ -305,6 +305,81 @@ test('breakpoints work', async () => {
   await delay(101)
   expect(count).toBe(1)
   expect(errors).toBe(0)
+
+  unmount()
+})
+
+
+/**
+ * 1.  Synchronous lazy loader: the selector fires exactly once,
+ *     creates a <reducerKey>Source reducer, and keeps value stable.
+ */
+test('lazy loaders fire exactly once', async () => {
+  let calls = 0
+
+  const logic = kea([
+      lazyLoaders(() => ({
+        users: ['default', {
+          loadUsers: () => {
+            calls += 1
+            return 'lazy data'
+          },
+        }],
+      })),
+  ])
+
+  const unmount = logic.mount()
+
+  // The first selector read (which Kea performs on mount) should
+  // automatically dispatch loadUsers once, populate the reducers and
+  // return the value.
+  expect(calls).toBe(0)
+  expect(logic.values.usersLoading).toBe(false)
+  expect(logic.values.users).toBe('default')
+  await delay(1)
+  expect(calls).toBe(1)
+  expect(logic.values.users).toBe('lazy data')
+  expect(logic.values.usersSource).toBe('lazy data')
+  expect(Object.keys(logic.values).sort()).toEqual(
+    ['users', 'usersLoading', 'usersSource'].sort(),
+  )
+
+  // Subsequent accesses must **not** re-fire the loader.
+  logic.values.users
+  logic.values.users
+  await delay(1)
+  expect(calls).toBe(1)
+
+  unmount()
+})
+
+/**
+ * 2.  Asynchronous lazy loader: usersLoading is true until the
+ *     promise resolves and then flips back to false.
+ */
+test('lazy loaders handle async + loading state', async () => {
+  const logic = kea([
+    lazyLoaders(() => ({
+      users: {
+        loadUsers: async () => {
+          await delay(2)
+          return 'lazy async data'
+        },
+      },
+    })),
+  ])
+
+  const unmount = logic.mount()
+
+  // Immediately after mount the async request has been fired.
+  expect(logic.values.usersLoading).toBe(false)
+  logic.values.users
+
+  await delay(5)
+
+  expect(logic.values.users).toBe('lazy async data')
+  expect(logic.values.usersSource).toBe('lazy async data')
+  expect(logic.values.usersLoading).toBe(false)
 
   unmount()
 })
